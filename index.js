@@ -1,4 +1,4 @@
-const { Block, Blockchain } = require('./blockchain');
+const Blockchain = require('./src/blockchain');
 
 const yishaiCoin = new Blockchain();
 
@@ -13,6 +13,5 @@ const yishaiCoin = new Blockchain();
 console.log('Blockchain valid?', yishaiCoin.isChainValid());
 
 console.log('------------------');
-
 
 console.log(JSON.stringify(yishaiCoin, null, 2));
