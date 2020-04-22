@@ -4,13 +4,13 @@ const Transaction = require('./transaction');
 class Blockchain {
   constructor() {
     this.chain = [this.createGenesisBlock()];
-    this.difficulty = 5;
+    this.difficulty = 1;
     this.pendingTransactions = [];
-    this.minerReward = 100;
+    this.minerReward = 99;
   }
 
   createGenesisBlock() {
-    const block = new Block(new Date(2020, 3, 1), null, '0');
+    const block = new Block(new Date(2020, 3, 1), [], '0');
 
     return block;
   }

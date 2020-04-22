@@ -1,17 +1,18 @@
 const Blockchain = require('./src/blockchain');
+const Transaction = require('./src/transaction');
 
 const yishaiCoin = new Blockchain();
 
-// yishaiCoin.addBlock(new Block('1/3/2020', {
-//     amount: 4
-// }));
+yishaiCoin.addPendingTransaction(
+    new Transaction('address1', 'address2', 100)
+);
+yishaiCoin.addPendingTransaction(
+    new Transaction('address2', 'address1', 50)
+);
 
-// yishaiCoin.addBlock(new Block('1/3/2020', {
-//     amount: 8
-// }));
+console.log('-------------------');
 
-console.log('Blockchain valid?', yishaiCoin.isChainValid());
+yishaiCoin.minePendingTransactions('yishai');
+console.log(yishaiCoin.getBalanceOfAddress('yishai'));
 
-console.log('------------------');
-
-console.log(JSON.stringify(yishaiCoin, null, 2));
+// console.log(JSON.stringify(yishaiCoin, null, 2));
