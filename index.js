@@ -1,18 +1,27 @@
+require('dotenv').config();
 const Blockchain = require('./src/blockchain');
 const Transaction = require('./src/transaction');
+const ec = require('./src/key-generator').ec;
+
+const myKey = ec.keyFromPrivate(process.env.PRIVATE_KEY);
+const myWalletAddress = myKey.getPublic('hex');
 
 const yishaiCoin = new Blockchain();
 
-yishaiCoin.addPendingTransaction(
-    new Transaction('address1', 'address2', 100)
-);
-yishaiCoin.addPendingTransaction(
-    new Transaction('address2', 'address1', 50)
-);
+const tx1 = new Transaction(myWalletAddress, 'address2', 10);
+tx1.signTransaction(myKey);
+yishaiCoin.addPendingTransaction(tx1);
+
+const tx2 = new Transaction(myWalletAddress, 'address1', 50);
+tx2.signTransaction(myKey);
+yishaiCoin.addPendingTransaction(tx2);
+
+console.log('Mining.......');
+
+yishaiCoin.minePendingTransactions(myWalletAddress);
 
 console.log('-------------------');
 
-yishaiCoin.minePendingTransactions('yishai');
-console.log(yishaiCoin.getBalanceOfAddress('yishai'));
+console.log(yishaiCoin.getBalanceOfAddress(myWalletAddress));
 
-// console.log(JSON.stringify(yishaiCoin, null, 2));
+console.log(JSON.stringify(yishaiCoin, null, 2));

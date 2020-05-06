@@ -26,6 +26,16 @@ class Block {
     }
     console.log('Block mined', this.hash);
   }
+
+  hasValidTransactions() {
+    for (let tx of this.transactions) {
+      if (!tx.isValid()) {
+        return false;
+      }
+    }
+
+    return true;
+  }
 }
 
 module.exports = Block;
