@@ -5,6 +5,9 @@ class Blockchain {
   constructor() {
     this.chain = [this.createGenesisBlock()];
     this.difficulty = 1;
+    /**
+     * @type {Transaction[]}
+     */
     this.pendingTransactions = []; // also known as `mempool`!
     this.minerReward = 100;
   }
@@ -26,10 +29,11 @@ class Blockchain {
     const block = new Block(Date.now(), this.pendingTransactions.slice(0, 4), this.getLatestBlock().hash);
     
     block.mineBlock(this.difficulty);
-    console.log('Block successfully mined');
     
     this.chain.push(block);
     this.pendingTransactions = this.pendingTransactions.slice(4);
+
+    return block;
   }
 
   addPendingTransaction(transaction) {
@@ -86,15 +90,26 @@ class Blockchain {
    * @param {String} merkleRoot hex representation of the merkle tree's root
    * @param {any} proof 
    * @param {String} leaf hash of leaf
+   * merkleRoot, proof, leaf
    */
-  verifyTransaction(merkleRoot, proof, leaf) {
-    const block = this.chain.find(block => block.tree.getRoot().toString('hex') === merkleRoot);
-
-    if (!block) {
+  verifyTransaction(blockHash, transactionHash) {
+    if (!blockHash || !transactionHash) {
+      console.log('missing block/transaction hash');
       return false;
     }
 
-    return block.tree.verify(proof, leaf, block.tree.getRoot());
+    const block = this.chain.find(block => block.hash === blockHash);
+
+    if (!block) {
+      console.log('could not find block with hash', blockHash, '.');
+      return false;
+    }
+
+    const leaf = Buffer.from(transactionHash);
+    const proof = block.tree.getProof(leaf);
+    const root = block.header.merkleRoot;
+
+    return block.tree.verify(proof, leaf, root);
   }
 }
 

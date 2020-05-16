@@ -38,12 +38,6 @@ class Block {
   }
 
   calculateHash() {
-    // const hash = crypto.createHash('sha256');
-    // hash.update(`${this.previousHash}${this.timestamp}${JSON.stringify(this.transaction)}${this.nonce}`);
-    // const base64Hash = hash.digest('base64');
-
-    // return base64Hash;
-
     return sha256(this.previousHash + this.timestamp + JSON.stringify(this.transactions) + this.nonce).toString();
   }
 
@@ -61,6 +55,7 @@ class Block {
       this.nonce++;
       this.hash = this.calculateHash();
     }
+    this.header.hash = this.hash;
     console.log('Block mined', this.hash);
   }
 

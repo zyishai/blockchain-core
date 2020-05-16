@@ -1,4 +1,3 @@
-
 const BlockHeader = require('../block-header');
 const WalletBase = require('./base');
 
