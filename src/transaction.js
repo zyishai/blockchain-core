@@ -7,6 +7,7 @@ class Transaction {
         this.toAddress = toAddress;
         this.amount = amount;
         this.timestamp = Date.now();
+        this.hash = this.calculateHash();
     }
 
     calculateHash() {
@@ -23,7 +24,7 @@ class Transaction {
             throw new Error('You cannot sign transaction for other wallets');
         }
 
-        const hashTx = this.calculateHash();
+        const hashTx = this.hash;
         const sig = signingKey.sign(hashTx, 'base64');
         this.signature = sig.toDER('hex');
     }
@@ -37,7 +38,7 @@ class Transaction {
         }
         
         const publicKey = ec.keyFromPublic(this.fromAddress, 'hex');
-        return publicKey.verify(this.calculateHash(), this.signature);
+        return publicKey.verify(this.hash, this.signature);
     }
 }
 

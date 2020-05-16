@@ -5,8 +5,8 @@ class Blockchain {
   constructor() {
     this.chain = [this.createGenesisBlock()];
     this.difficulty = 1;
-    this.pendingTransactions = [];
-    this.minerReward = 99;
+    this.pendingTransactions = []; // also known as `mempool`!
+    this.minerReward = 100;
   }
 
   createGenesisBlock() {
@@ -21,15 +21,15 @@ class Blockchain {
 
   minePendingTransactions(minerAddress) {
     const rewardTx = new Transaction(null, minerAddress, this.minerReward);
-    this.pendingTransactions.push(rewardTx);
+    this.pendingTransactions.unshift(rewardTx);
 
-    const block = new Block(Date.now(), this.pendingTransactions, this.getLatestBlock().hash);
+    const block = new Block(Date.now(), this.pendingTransactions.slice(0, 4), this.getLatestBlock().hash);
     
     block.mineBlock(this.difficulty);
     console.log('Block successfully mined');
     
     this.chain.push(block);
-    this.pendingTransactions = [];
+    this.pendingTransactions = this.pendingTransactions.slice(4);
   }
 
   addPendingTransaction(transaction) {
@@ -44,7 +44,7 @@ class Blockchain {
   }
 
   getBalanceOfAddress(address) {
-    let balance = 0;
+    let balance = 1000;
 
     for (let block of this.chain) {
       for (let tx of block.transactions) {
@@ -78,6 +78,23 @@ class Blockchain {
     }
 
     return true;
+  }
+
+  /**
+   * Verify that a transaction exists in a block.
+   * 
+   * @param {String} merkleRoot hex representation of the merkle tree's root
+   * @param {any} proof 
+   * @param {String} leaf hash of leaf
+   */
+  verifyTransaction(merkleRoot, proof, leaf) {
+    const block = this.chain.find(block => block.tree.getRoot().toString('hex') === merkleRoot);
+
+    if (!block) {
+      return false;
+    }
+
+    return block.tree.verify(proof, leaf, block.tree.getRoot());
   }
 }
 

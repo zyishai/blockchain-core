@@ -12,6 +12,9 @@
   "dependencies": {
     "crypto-js": "^4.0.0",
     "dotenv": "^8.2.0",
-    "elliptic": "^6.5.2"
+    "elliptic": "^6.5.2",
+    "fully-connected-topology": "^1.1.1",
+    "merkletreejs": "^0.1.11",
+    "p2p": "^0.10.2"
   }
 }

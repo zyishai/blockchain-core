@@ -2,6 +2,7 @@ require('dotenv').config();
 const Blockchain = require('./src/blockchain');
 const Transaction = require('./src/transaction');
 const ec = require('./src/key-generator').ec;
+const { MerkleTree } = require('merkletreejs');
 
 const myKey = ec.keyFromPrivate(process.env.PRIVATE_KEY);
 const myWalletAddress = myKey.getPublic('hex');
@@ -22,6 +23,10 @@ yishaiCoin.minePendingTransactions(myWalletAddress);
 
 console.log('-------------------');
 
-console.log(yishaiCoin.getBalanceOfAddress(myWalletAddress));
+console.log('Balance:', yishaiCoin.getBalanceOfAddress(myWalletAddress));
 
-console.log(JSON.stringify(yishaiCoin, null, 2));
+// console.log(JSON.stringify(yishaiCoin, null, 2));
+
+// MerkleTree.print(yishaiCoin.chain[1].tree);
+// console.log(yishaiCoin.chain[1].filter);
+// console.log('Filter value(binary):', yishaiCoin.chain[1].filter.filter.toString(2));
