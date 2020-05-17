@@ -1,7 +1,6 @@
 const p2p = require('p2p');
 const { generateKeys, ec } = require('../key-generator');
 const Transaction = require('../transaction');
-const createReader = require('../utils/reader');
 
 class BaseWallet {
     constructor(name) {
@@ -16,32 +15,17 @@ class BaseWallet {
         }
     }
 
-    async initialize(wallet) {
-        const [myPort, ...peerPorts] = process.argv.slice(3);
-        this.peer = p2p.peer({
-            host: 'localhost',
-            port: myPort,
-            wellKnownPeers: peerPorts.map(port => ({ host: 'localhost', port }))
-        });
-        this.reader = createReader();
-
-        this.peer.handle.headers = () => {};
-        this.peer.handle.createTransaction = () => {};
-        this.peer.handle.searchTransaction = () => {};
-        this.peer.handle.verifyTransaction = () => {};
-        this.peer.handle.balance = () => {};
-        this.peer.handle.introduce = ({ payload }) => {
-            this.wallets[payload.name] = payload.address;
-        }
-
-        await this.reader.start(wallet);
-    }
-
     async introduce() {
         console.clear();
         console.log(`Wallet name: ${this.name}`);
         console.log(`Wallet address: ${this.publicAddress}`);
-        this.broadcast('introduce', { name: this.name, address: this.publicAddress });
+        this.broadcast('introduce', { name: this.name, address: this.publicAddress }, (err, peer) => {
+            if (err) {
+                console.error(err);
+            } else {
+                this.wallets[peer.name] = peer.address;
+            }
+        });
     }
 
     async printBlockchain() {
@@ -66,6 +50,9 @@ class BaseWallet {
 
     async makeTransfer(walletName, amount) {
         const toAddress = this.wallets[walletName];
+        console.log('public address:', this.publicAddress);
+        console.log('to address', toAddress);
+        console.log('wallet name', walletName);
         const tx = new Transaction(this.publicAddress, toAddress, Number.parseInt(amount));
         tx.signTransaction(this.keyObj);
 
@@ -124,6 +111,10 @@ class BaseWallet {
         });
     }
 
+    setPeer(peer) {
+        this.peer = peer;
+    }
+
     broadcast(event, data, callback = () => {}) {
         const peers = this.peer.wellKnownPeers.get().map(peer =>
             peer !== this.peer ? this.peer.remote(peer) : peer);
@@ -131,6 +122,15 @@ class BaseWallet {
         peers.forEach(peer => peer.run(`handle/${event}`, {
             payload: data
         }, callback));
+    }
+
+    addNewPeer({ payload }, done) {
+        const isKnownPeer = !!this.wallets[payload.name];
+        this.wallets[payload.name] = payload.address;
+
+        if (!isKnownPeer) {
+            done(null, { name: this.name, address: this.publicAddress });
+        }
     }
 }
 

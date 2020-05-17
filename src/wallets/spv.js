@@ -9,9 +9,6 @@ class SPVWallet extends WalletBase {
      */
     constructor(name) {
         super(name);
-        super.initialize(this);
-
-        this.peer.handle.headers = this.getBlockHeaders.bind(this);
     }
 
     getBlockHeaders({ payload }) {

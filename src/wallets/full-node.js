@@ -5,13 +5,7 @@ const Transaction = require('../transaction');
 class FullNodeWallet extends WalletBase {
     constructor(name) {
         super(name);
-        super.initialize(this);
         this.blockchain = new Blockchain();
-
-        this.peer.handle.createTransaction = this.createTransaction.bind(this);
-        this.peer.handle.searchTransaction = this.searchTransaction.bind(this);
-        this.peer.handle.verifyTransaction = this.verifyTransaction.bind(this);
-        this.peer.handle.balance = this.getBalanceFor.bind(this);
     }
 
     async printBlockchain() {
@@ -58,29 +52,51 @@ class FullNodeWallet extends WalletBase {
         Object.assign(tx, payload);
 
         this.blockchain.addPendingTransaction(tx);
-        done(null, {
-            message: 'Transaction created successfully.',
-            hash: tx.hash
-        });
+
+        if (done) {
+            done(null, {
+                message: 'Transaction created successfully.',
+                hash: tx.hash
+            });
+        } else {
+            console.log('Transaction created successfully.');
+            console.log('Transaction hash:', tx.hash);
+            return tx.hash;
+        }
     }
 
     searchTransaction({ payload }, done) {
-        const transactions = this.blockchain.chain
+        const blocks = this.blockchain.chain
             .filter(block => block.filter.has(Number.parseInt(payload, 16)))
+        const transactions = blocks
             .map(block => block.transactions.find(tx => tx.hash === payload));
 
-        done(null, {
-            data: transactions.length ? transactions : `No transactions found in blockchain with hash ${payload}.`
-        });
+        if (done) {
+            done(null, {
+                data: transactions.length ? transactions : `No transactions found in blockchain with hash ${payload}.`
+            });
+        } else {
+            // console.log(transactions.length ? transactions : `No transactions found in blockchain with hash ${payload}.`);
+
+            return {
+                block: blocks[0],
+                transaction: transactions[0]
+            }
+        }
     }
 
     verifyTransaction({ payload }, done) {
         try {
             const { txHash, blockHash } = payload;
 
-            done(null, {
-                verified: this.blockchain.verifyTransaction(blockHash, txHash)
-            });
+            if (done) {
+                done(null, {
+                    verified: this.blockchain.verifyTransaction(blockHash, txHash)
+                });
+            } else {
+                // console.log('Is transaction verified?', this.blockchain.verifyTransaction(blockHash, txHash));
+                return this.blockchain.verifyTransaction(blockHash, txHash);
+            }
         } catch(err) {
             console.error(err);
             done(err);
@@ -89,7 +105,13 @@ class FullNodeWallet extends WalletBase {
 
     getBalanceFor({ payload }, done) {
         const balance = this.blockchain.getBalanceOfAddress(payload);
-        done(null, {balance});
+
+        if (balance && done) {
+            done(null, {balance});
+        } else {
+            console.log(`Balance of address ${payload} is ${balance}`);
+            return balance;
+        }
     }
 }
 
