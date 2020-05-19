@@ -3,9 +3,9 @@ const WalletBase = require('./base');
 const Transaction = require('../transaction');
 
 class FullNodeWallet extends WalletBase {
-    constructor(name) {
+    constructor(name, clear) {
         super(name);
-        this.blockchain = new Blockchain();
+        this.blockchain = new Blockchain(name, clear);
     }
 
     async printBlockchain() {
@@ -14,7 +14,7 @@ class FullNodeWallet extends WalletBase {
             console.log('Block is not valid!');
             return;
         }
-        this.blockchain.chain.forEach(block => {
+        this.blockchain.chain.get().forEach(block => {
             console.log('BLOCK HEADER')
             console.log(block.getHeader());
             if (!block.hasValidTransactions()) {
@@ -27,7 +27,7 @@ class FullNodeWallet extends WalletBase {
     }
 
     async syncBlockchain() {
-        this.broadcast('headers', this.blockchain.chain.map(block => block.getHeader()));
+        this.broadcast('headers', this.blockchain.chain.get().map(block => block.getHeader()));
     }
 
     async printPendingTransactions() {
@@ -66,7 +66,7 @@ class FullNodeWallet extends WalletBase {
     }
 
     searchTransaction({ payload }, done) {
-        const blocks = this.blockchain.chain
+        const blocks = this.blockchain.chain.get()
             .filter(block => block.filter.has(Number.parseInt(payload, 16)))
         const transactions = blocks
             .map(block => block.transactions.find(tx => tx.hash === payload));

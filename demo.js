@@ -4,9 +4,12 @@ const SPVWallet = require('./src/wallets/spv');
 const Transaction = require('./src/transaction');
 
 const rl = readline.createInterface(process.stdin, process.stdout);
-const yishai = new MinerWallet('yishai');
+const yishai = new MinerWallet('yishai', true);
 const personA = new SPVWallet('a');
 const personB = new SPVWallet('b');
+
+// clear mempool
+yishai.blockchain.pendingTransactions.clear();
 
 // utility helpers
 function makeTransfer(fromWallet, toWallet, amount) {
@@ -41,41 +44,26 @@ async function nextStep() {
     console.log('We will start by creating 18 transactions..');
     await nextStep();
     makeTransfer(personA, personB, 500); //1
-    await nextStep();
     makeTransfer(personA, yishai, 50); //2
-    await nextStep();
     makeTransfer(personB, personA, 120); //3
-    await nextStep();
     makeTransfer(personB, yishai, 300); //4
-    await nextStep();
     makeTransfer(yishai, personA, 290); //5
-    await nextStep();
     const minedTransactionHash = makeTransfer(personA, personB, 80); //6
     await nextStep();
     makeTransfer(personB, personA, 370); //7
-    await nextStep();
     makeTransfer(yishai, personB, 15); //8
-    await nextStep();
     makeTransfer(personB, personA, 38); //9
-    await nextStep();
     makeTransfer(personB, yishai, 100); //10
-    await nextStep();
     makeTransfer(yishai, personA, 80); //11
-    await nextStep();
     makeTransfer(personA, personB, 57); //12
     await nextStep();
     makeTransfer(personA, yishai, 25); //13
-    await nextStep();
     makeTransfer(yishai, personB, 100); //14
-    await nextStep();
 
     // this transactions WON'T be mined
     makeTransfer(personA, personB, 100); //15
-    await nextStep();
     const pendingTransactionHash = makeTransfer(personB, yishai, 20); //16
-    await nextStep();
     makeTransfer(personB, personA, 110); //17
-    await nextStep();
     makeTransfer(personA, personB, 12); //18
     await nextStep();
 

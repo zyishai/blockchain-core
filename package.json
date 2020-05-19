@@ -14,7 +14,9 @@
     "dotenv": "^8.2.0",
     "elliptic": "^6.5.2",
     "fully-connected-topology": "^1.1.1",
+    "lowdb": "^1.0.0",
     "merkletreejs": "^0.1.11",
+    "node-serialize": "^0.0.4",
     "p2p": "^0.10.2"
   }
 }

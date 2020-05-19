@@ -1,14 +1,19 @@
 const Block = require('./block');
 const Transaction = require('./transaction');
+const { Mempool, Ledger } = require('./utils/persistence');
 
 class Blockchain {
-  constructor() {
-    this.chain = [this.createGenesisBlock()];
+  constructor(name, clear) {
+    this.chain = new Ledger(name);
+    if (clear) {
+      this.chain.clear();
+    }
+    this.chain.addBlock(this.createGenesisBlock());
     this.difficulty = 1;
     /**
-     * @type {Transaction[]}
+     * @type {Mempool}
      */
-    this.pendingTransactions = []; // also known as `mempool`!
+    this.pendingTransactions = new Mempool();
     this.minerReward = 100;
   }
 
@@ -19,19 +24,18 @@ class Blockchain {
   }
 
   getLatestBlock() {
-    return this.chain[this.chain.length - 1];
+    return this.chain.getLatestBlock();
   }
 
   minePendingTransactions(minerAddress) {
     const rewardTx = new Transaction(null, minerAddress, this.minerReward);
-    this.pendingTransactions.unshift(rewardTx);
+    this.pendingTransactions.addTransactionToHead(rewardTx);
 
-    const block = new Block(Date.now(), this.pendingTransactions.slice(0, 4), this.getLatestBlock().hash);
+    const block = new Block(Date.now(), this.pendingTransactions.getNoOfTransactions(4), this.getLatestBlock().hash);
     
     block.mineBlock(this.difficulty);
     
-    this.chain.push(block);
-    this.pendingTransactions = this.pendingTransactions.slice(4);
+    this.chain.addBlock(block);
 
     return block;
   }
@@ -44,7 +48,7 @@ class Blockchain {
       throw new Error('Cannot add invalid transaction to chain');
     }
 
-    this.pendingTransactions.push(transaction);
+    this.pendingTransactions.addTransaction(transaction);
   }
 
   getBalanceOfAddress(address) {
@@ -64,9 +68,10 @@ class Blockchain {
   }
 
   isChainValid() {
-    for (let i = 1; i < this.chain.length; i++) {
-      const currentBlock = this.chain[i];
-      const previousBlock = this.chain[i-1];
+    const chain = this.chain.get();
+    for (let i = 1; i < chain.length; i++) {
+      const currentBlock = chain[i];
+      const previousBlock = chain[i-1];
       
       if (!currentBlock.hasValidTransactions()) {
         return false;
@@ -98,7 +103,7 @@ class Blockchain {
       return false;
     }
 
-    const block = this.chain.find(block => block.hash === blockHash);
+    const block = this.chain.getBlockByHash(blockHash);
 
     if (!block) {
       console.log('could not find block with hash', blockHash, '.');
